@@ -2,6 +2,7 @@ import sys
 import os
 import tempfile
 import shutil
+from io import BytesIO
 
 # Add backend directory to path so we can import backend modules directly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
@@ -19,6 +20,25 @@ from analyzer_v2 import analyze_shelf_v2
 from excel_generator import generate_excel
 
 import pandas as pd
+from PIL import Image
+
+# Clockwise degrees stored → PIL transpose operation
+_PIL_ROTATE = {
+    90:  Image.Transpose.ROTATE_270,
+    180: Image.Transpose.ROTATE_180,
+    270: Image.Transpose.ROTATE_90,
+}
+
+
+def _rotated_preview(uploaded_file, degrees: int) -> bytes:
+    """Return JPEG bytes of the uploaded file rotated by `degrees` clockwise."""
+    uploaded_file.seek(0)
+    img = Image.open(uploaded_file).convert("RGB")
+    if degrees != 0:
+        img = img.transpose(_PIL_ROTATE[degrees])
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=80)
+    return buf.getvalue()
 
 
 # =============================================================================
@@ -50,6 +70,7 @@ def _init():
     defaults = {
         "step": "upload",
         "photos": [],
+        "photo_rotations": {},
         "metadata": {
             "country": "",
             "city": "",
@@ -100,8 +121,8 @@ if st.session_state.error:
 # STEP 1 — Upload Photos
 # =============================================================================
 if st.session_state.step == "upload":
-    st.subheader("Step 1 — Upload Shelf Photos")
-    st.write("Upload one or more shelf photos. A mix of full-shelf overviews and close-up shots gives the best results.")
+    st.subheader("Step 1 — Upload & Rotate Photos")
+    st.write("Upload one or more shelf photos. Use the rotation buttons to fix any sideways or upside-down images before analysis.")
 
     uploaded = st.file_uploader(
         "Choose photos",
@@ -110,14 +131,35 @@ if st.session_state.step == "upload":
     )
 
     if uploaded:
-        st.write(f"**{len(uploaded)} photo(s) selected**")
-        preview_cols = st.columns(min(len(uploaded), 5))
-        for i, f in enumerate(uploaded[:5]):
-            with preview_cols[i]:
-                st.image(f, caption=f.name, use_container_width=True)
-        if len(uploaded) > 5:
-            st.caption(f"…and {len(uploaded) - 5} more")
+        # Reset rotations when the file selection changes
+        current_names = [f.name for f in uploaded]
+        prev_names = [f.name for f in st.session_state.get("photos", [])]
+        if current_names != prev_names:
+            st.session_state.photo_rotations = {i: 0 for i in range(len(uploaded))}
 
+        st.write(f"**{len(uploaded)} photo(s) selected** — rotate any that are sideways or upside-down:")
+
+        COLS_PER_ROW = 3
+        for row_start in range(0, len(uploaded), COLS_PER_ROW):
+            row_files = uploaded[row_start: row_start + COLS_PER_ROW]
+            cols = st.columns(COLS_PER_ROW)
+            for j, photo in enumerate(row_files):
+                i = row_start + j
+                rotation = st.session_state.photo_rotations.get(i, 0)
+                with cols[j]:
+                    preview = _rotated_preview(photo, rotation)
+                    st.image(preview, caption=f"{photo.name}  ({rotation}°)", use_container_width=True)
+                    b_left, b_right = st.columns(2)
+                    with b_left:
+                        if st.button("↺ Left", key=f"rot_l_{i}"):
+                            st.session_state.photo_rotations[i] = (rotation - 90) % 360
+                            st.rerun()
+                    with b_right:
+                        if st.button("↻ Right", key=f"rot_r_{i}"):
+                            st.session_state.photo_rotations[i] = (rotation + 90) % 360
+                            st.rerun()
+
+        st.write("")
         if st.button("Continue →", type="primary"):
             st.session_state.photos = uploaded
             # Auto-parse metadata from filenames
@@ -189,11 +231,18 @@ elif st.session_state.step == "processing":
             session_dir = tempfile.mkdtemp(prefix="shelf_")
             photo_paths = []
 
-            for uploaded_file in st.session_state.photos:
+            rotations = st.session_state.get("photo_rotations", {})
+            for i, uploaded_file in enumerate(st.session_state.photos):
                 uploaded_file.seek(0)
                 file_path = os.path.join(session_dir, uploaded_file.name)
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.read())
+                rotation = rotations.get(i, 0)
+                if rotation != 0:
+                    img = Image.open(uploaded_file).convert("RGB")
+                    img = img.transpose(_PIL_ROTATE[rotation])
+                    img.save(file_path, quality=95)
+                else:
+                    with open(file_path, "wb") as f:
+                        f.write(uploaded_file.read())
                 photo_paths.append(file_path)
 
             skus = analyze_shelf_v2(photo_paths, st.session_state.metadata.copy(), session_dir)
