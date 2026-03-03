@@ -1,0 +1,52 @@
+.progress-container {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.progress-spinner {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-container h2 {
+  margin-bottom: 0.5rem;
+}
+
+.progress-status {
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.progress-detail {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.progress-time {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-note {
+  margin-top: 1rem;
+  color: var(--text-light);
+  font-size: 0.8rem;
+}

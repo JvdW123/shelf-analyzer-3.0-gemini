@@ -1,0 +1,146 @@
+.results-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.results-summary h2 {
+  margin-bottom: 1rem;
+  color: var(--success);
+}
+
+.stats-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.results-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Table */
+.results-table-container h3 {
+  margin-bottom: 1rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.results-table th {
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  position: sticky;
+  top: 0;
+}
+
+.results-table td {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.results-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.results-table tbody tr:hover {
+  background: #eef3fb;
+}
+
+.results-table tbody tr.row-oos {
+  background: #fff5f5;
+}
+
+.row-num {
+  color: var(--text-light);
+  font-size: 0.7rem;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.badge-green {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge-yellow {
+  background: #fff8e1;
+  color: #f57f17;
+}
+
+.badge-red {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.table-note {
+  margin-top: 1rem;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .results-header {
+    flex-direction: column;
+  }
+  .results-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+  .results-actions .btn {
+    flex: 1;
+  }
+}
