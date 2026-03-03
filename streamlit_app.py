@@ -131,11 +131,11 @@ if st.session_state.step == "upload":
     )
 
     if uploaded:
-        # Reset rotations when the file selection changes
+        # Reset rotations only when the file selection actually changes
         current_names = [f.name for f in uploaded]
-        prev_names = [f.name for f in st.session_state.get("photos", [])]
-        if current_names != prev_names:
+        if current_names != st.session_state.get("upload_filenames", []):
             st.session_state.photo_rotations = {i: 0 for i in range(len(uploaded))}
+            st.session_state.upload_filenames = current_names
 
         st.write(f"**{len(uploaded)} photo(s) selected** — rotate any that are sideways or upside-down:")
 
