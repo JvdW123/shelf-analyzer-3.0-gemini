@@ -21,6 +21,30 @@ from excel_generator import generate_excel
 import pandas as pd
 
 
+# =============================================================================
+# PASSWORD GATE
+# =============================================================================
+def _check_password() -> bool:
+    """Returns True if the user has entered the correct password."""
+    if st.session_state.get("authenticated"):
+        return True
+
+    st.subheader("Sign in")
+    pwd = st.text_input("Password", type="password", key="pwd_input")
+    if st.button("Enter", type="primary"):
+        correct = st.secrets.get("APP_PASSWORD", "")
+        if pwd == correct:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Incorrect password.")
+    return False
+
+
+if not _check_password():
+    st.stop()
+
+
 # --- Session state initialisation ---
 def _init():
     defaults = {
